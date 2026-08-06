@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { randomUUID } from 'crypto';
 import { AuthRequest } from '../middleware/auth.js';
 import { supabaseAdmin } from '../config/supabase.js';
-import { ai, defaultModel } from '../config/gemini.js';
+import { getGeminiClient, generateFallbackSVG } from '../config/gemini.js';
 
 // In-Memory Backup Store for AI Image Library
 export const memoryImageLibraryStore: any[] = [];
@@ -18,41 +18,55 @@ export const generateAndStoreImage = async (req: AuthRequest, res: Response) => 
 
     const imageId = randomUUID();
     let imageBase64 = '';
-    const imageModel = 'dall-e-3-gemini-image';
+    let imageModel = 'gemini-imagen-3';
 
-    // Call OpenAI DALL-E / Gemini Image API if available
-    const openaiKey = process.env.OPENAI_API_KEY;
-    if (openaiKey && !openaiKey.includes('placeholder')) {
-      try {
-        const response = await fetch('https://api.openai.com/v1/images/generations', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${openaiKey}`
-          },
-          body: JSON.stringify({
-            model: 'dall-e-3',
+    // 1. Try Google Gemini Imagen 3 via @google/genai
+    const client = getGeminiClient();
+    if (client) {
+      const imagenCandidates = [
+        'imagen-3.0-generate-002',
+        'imagen-3.0-fast-generate-001'
+      ];
+      for (const modelName of imagenCandidates) {
+        try {
+          const response = await client.models.generateImages({
+            model: modelName,
             prompt: prompt,
-            n: 1,
-            size: '1024x1024',
-            response_format: 'b64_json'
-          })
-        });
-        const data = await response.json();
-        if (data?.data?.[0]?.b64_json) {
-          imageBase64 = `data:image/png;base64,${data.data[0].b64_json}`;
+            config: { numberOfImages: 1, outputMimeType: 'image/png' }
+          });
+          if (response.generatedImages?.[0]?.image?.imageBytes) {
+            imageBase64 = `data:image/png;base64,${response.generatedImages[0].image.imageBytes}`;
+            imageModel = modelName;
+            break;
+          }
+        } catch (err: any) {
+          console.warn(`[Gemini Imagen] ${modelName} fallback note:`, err.message);
         }
-      } catch (err: any) {
-        console.warn('OpenAI Image API fallback:', err.message);
       }
     }
 
-    // High quality Base64 fallback rendering
+    // 2. High-speed Photorealistic Synthesizer fallback if Imagen quota is unavailable
     if (!imageBase64) {
-      const cleanPrompt = prompt.length > 50 ? prompt.substring(0, 50) + '...' : prompt;
-      const svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"><defs><linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#1e1b4b"/><stop offset="50%" stop-color="#6b21a8"/><stop offset="100%" stop-color="#020617"/></linearGradient></defs><rect width="800" height="600" fill="url(#bg)"/><circle cx="400" cy="240" r="100" fill="#c084fc" opacity="0.25"/><polygon points="400,150 435,220 510,230 455,285 470,360 400,320 330,360 345,285 290,230 365,220" fill="#f472b6" opacity="0.95"/><text x="400" y="420" font-family="sans-serif" font-size="26" font-weight="800" fill="#ffffff" text-anchor="middle">Nexus AI Image Synthesis</text><text x="400" y="465" font-family="sans-serif" font-size="15" fill="#e9d5ff" text-anchor="middle">Prompt: "${cleanPrompt.replace(/"/g, "'")}"</text></svg>`;
-      const svgBase64 = Buffer.from(svgString).toString('base64');
-      imageBase64 = `data:image/svg+xml;base64,${svgBase64}`;
+      try {
+        const queryText = prompt.replace(/create image of|generate image of|create image|generate image|draw a|draw/gi, '').trim() || prompt;
+        const encoded = encodeURIComponent(queryText);
+        const imageUrl = `https://image.pollinations.ai/prompt/${encoded}?width=1024&height=1024&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
+        const imgRes = await fetch(imageUrl);
+        if (imgRes.ok) {
+          const arrayBuffer = await imgRes.arrayBuffer();
+          const b64 = Buffer.from(arrayBuffer).toString('base64');
+          imageBase64 = `data:image/jpeg;base64,${b64}`;
+          imageModel = 'flux-ai-photorealistic-synthesizer';
+        }
+      } catch (e: any) {
+        console.warn('Pollinations AI image fallback note:', e.message);
+      }
+    }
+
+    // 3. Clean SVG Graphic Vector Fallback
+    if (!imageBase64) {
+      imageBase64 = generateFallbackSVG(prompt);
+      imageModel = 'nexus-vector-generator';
     }
 
     const imageRecord = {
