@@ -1,113 +1,132 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from './hooks/useAuth';
-import { LandingPage } from './pages/LandingPage';
-import { LoginPage } from './pages/LoginPage';
-import { RegisterPage } from './pages/RegisterPage';
-import { OnboardingPage } from './pages/OnboardingPage';
-import { DashboardPage } from './pages/DashboardPage';
-import { NewInterviewPage } from './pages/NewInterviewPage';
-import { LiveInterviewPage } from './pages/LiveInterviewPage';
-import { FinalReportPage } from './pages/FinalReportPage';
-import { HistoryPage } from './pages/HistoryPage';
-import { StudyPlanPage } from './pages/StudyPlanPage';
-import { ProfilePage } from './pages/ProfilePage';
-import { LoadingState } from './components/LoadingState';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { WorkspaceProvider } from './context/WorkspaceContext';
+import { ThemeProvider } from './context/ThemeContext';
 
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, loading } = useAuth();
+import { Navbar } from './components/Navbar';
+import { Sidebar } from './components/Sidebar';
+
+import { AuthPage } from './pages/AuthPage';
+import { DashboardPage } from './pages/DashboardPage';
+import { ChatWorkspacePage } from './pages/ChatWorkspacePage';
+import { StudyHubPage } from './pages/StudyHubPage';
+import { ImageLibraryPage } from './pages/ImageLibraryPage';
+import { TranscriptLibraryPage } from './pages/TranscriptLibraryPage';
+import { AnalyticsPage } from './pages/AnalyticsPage';
+import { ProfilePage } from './pages/ProfilePage';
+import { SettingsPage } from './pages/SettingsPage';
+
+const ProtectedLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { token, loading } = useAuth();
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <LoadingState message="Authenticating session..." />
+      <div className="min-h-screen bg-dark-950 flex items-center justify-center text-purple-300 text-xs font-semibold animate-pulse">
+        Initializing Nexus AI Multimodal Workspace...
       </div>
     );
   }
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
+  if (!token) {
+    return <Navigate to="/auth" replace />;
   }
 
-  return <>{children}</>;
+  return (
+    <WorkspaceProvider>
+      <div className="min-h-screen bg-dark-950 text-gray-100 relative">
+        <div className="purple-glow-bg" />
+        <Navbar />
+        <div className="flex">
+          <Sidebar />
+          <main className="flex-1 p-4 lg:p-6 max-w-7xl mx-auto overflow-x-hidden relative z-10">
+            {children}
+          </main>
+        </div>
+      </div>
+    </WorkspaceProvider>
+  );
 };
 
 export const App: React.FC = () => {
   return (
-    <Routes>
-      {/* Public Routes */}
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
+          <Routes>
+            <Route path="/auth" element={<AuthPage />} />
 
-      {/* Protected Routes */}
-      <Route
-        path="/onboarding"
-        element={
-          <ProtectedRoute>
-            <OnboardingPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <DashboardPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/interview/new"
-        element={
-          <ProtectedRoute>
-            <NewInterviewPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/interview/:id"
-        element={
-          <ProtectedRoute>
-            <LiveInterviewPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/interview/:id/result"
-        element={
-          <ProtectedRoute>
-            <FinalReportPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/history"
-        element={
-          <ProtectedRoute>
-            <HistoryPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/study-plan"
-        element={
-          <ProtectedRoute>
-            <StudyPlanPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/profile"
-        element={
-          <ProtectedRoute>
-            <ProfilePage />
-          </ProtectedRoute>
-        }
-      />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedLayout>
+                  <DashboardPage />
+                </ProtectedLayout>
+              }
+            />
+            <Route
+              path="/chat"
+              element={
+                <ProtectedLayout>
+                  <ChatWorkspacePage />
+                </ProtectedLayout>
+              }
+            />
+            <Route
+              path="/study"
+              element={
+                <ProtectedLayout>
+                  <StudyHubPage />
+                </ProtectedLayout>
+              }
+            />
+            <Route
+              path="/images"
+              element={
+                <ProtectedLayout>
+                  <ImageLibraryPage />
+                </ProtectedLayout>
+              }
+            />
+            <Route
+              path="/transcripts"
+              element={
+                <ProtectedLayout>
+                  <TranscriptLibraryPage />
+                </ProtectedLayout>
+              }
+            />
+            <Route
+              path="/analytics"
+              element={
+                <ProtectedLayout>
+                  <AnalyticsPage />
+                </ProtectedLayout>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedLayout>
+                  <ProfilePage />
+                </ProtectedLayout>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedLayout>
+                  <SettingsPage />
+                </ProtectedLayout>
+              }
+            />
 
-      {/* Fallback Catch-All */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   );
 };
+
+export default App;

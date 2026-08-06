@@ -1,65 +1,104 @@
 import React, { useState } from 'react';
-import { Navbar } from '../components/Navbar';
-import { Sidebar } from '../components/Sidebar';
-import { ProfileForm } from '../components/ProfileForm';
-import { ErrorAlert } from '../components/ErrorAlert';
-import { useAuth } from '../hooks/useAuth';
-import { api } from '../lib/api';
-import { User, CheckCircle2 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { User, Mail, Shield, Save, CheckCircle2 } from 'lucide-react';
 
 export const ProfilePage: React.FC = () => {
-  const { profile, refreshProfile } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { user, updateProfile } = useAuth();
 
-  const handleProfileSubmit = async (formData: any) => {
-    setIsLoading(true);
-    setError(null);
-    setSuccessMsg(null);
+  const [fullName, setFullName] = useState(user?.full_name || '');
+  const [bio, setBio] = useState(user?.bio || '');
+  const [avatarUrl, setAvatarUrl] = useState(user?.avatar_url || '');
+  const [saving, setSaving] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setSuccess(false);
     try {
-      await api.updateProfile(formData);
-      await refreshProfile();
-      setSuccessMsg('Profile settings updated successfully!');
-    } catch (err: any) {
-      console.error('[ProfilePage] Save profile error:', err);
-      setError(err.message || 'Failed to update profile settings.');
+      await updateProfile({ full_name: fullName, bio, avatar_url: avatarUrl });
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (e) {
+      console.error('Failed to update profile:', e);
     } finally {
-      setIsLoading(false);
+      setSaving(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      <Navbar />
+    <div className="max-w-2xl mx-auto space-y-6 pb-8 animate-fadeIn">
+      <div>
+        <h1 className="text-2xl font-extrabold text-white flex items-center gap-2">
+          <User className="w-6 h-6 text-purple-400" /> User Profile Settings
+        </h1>
+        <p className="text-xs text-gray-400">Manage account information, bio, and avatar.</p>
+      </div>
 
-      <div className="flex flex-1">
-        <Sidebar />
-
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto w-full space-y-6">
+      <div className="p-6 rounded-3xl glass-panel border border-purple-500/30 space-y-6">
+        <div className="flex items-center gap-4 border-b border-purple-500/20 pb-6">
+          <img
+            src={avatarUrl || `https://api.dicebear.com/7.x/bottts/svg?seed=${fullName}`}
+            alt={fullName}
+            className="w-16 h-16 rounded-2xl border-2 border-purple-500/40 object-cover shadow-glow-purple"
+          />
           <div>
-            <h1 className="text-3xl font-extrabold text-slate-100 tracking-tight flex items-center space-x-3">
-              <User className="w-7 h-7 text-blue-400" />
-              <span>Profile & Target Preferences</span>
-            </h1>
-            <p className="text-sm text-slate-400 mt-1">
-              Manage your career objectives, experience level, known technical skills, and weak topics.
-            </p>
+            <h3 className="text-base font-extrabold text-white">{user?.full_name}</h3>
+            <p className="text-xs text-gray-400">{user?.email}</p>
+            <span className="text-[9px] uppercase px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold mt-1 inline-block">
+              {user?.role || 'User'}
+            </span>
+          </div>
+        </div>
+
+        {success && (
+          <div className="p-3 rounded-xl bg-green-950/60 border border-green-500/40 text-green-300 text-xs flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4" /> Profile updated successfully!
+          </div>
+        )}
+
+        <form onSubmit={handleSave} className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-gray-300 mb-1">Full Name</label>
+            <input
+              type="text"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl glass-input text-xs"
+            />
           </div>
 
-          {error && <ErrorAlert message={error} onDismiss={() => setError(null)} />}
-
-          {successMsg && (
-            <div className="p-4 bg-emerald-950/60 border border-emerald-800/80 text-emerald-300 rounded-xl flex items-center space-x-2 text-sm font-semibold shadow-lg">
-              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-              <span>{successMsg}</span>
-            </div>
-          )}
-
-          <div className="bg-slate-900/80 border border-slate-800 p-6 sm:p-8 rounded-3xl shadow-2xl backdrop-blur-md">
-            <ProfileForm initialData={profile} onSubmit={handleProfileSubmit} isLoading={isLoading} />
+          <div>
+            <label className="block text-xs font-semibold text-gray-300 mb-1">Bio / Role Description</label>
+            <textarea
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              rows={3}
+              placeholder="Full stack developer, AI researcher, or student..."
+              className="w-full px-3 py-2.5 rounded-xl glass-input text-xs"
+            />
           </div>
-        </main>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-300 mb-1">Avatar Image URL</label>
+            <input
+              type="text"
+              value={avatarUrl}
+              onChange={(e) => setAvatarUrl(e.target.value)}
+              placeholder="https://..."
+              className="w-full px-3 py-2.5 rounded-xl glass-input text-xs"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={saving}
+            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-glow-purple transition-all"
+          >
+            <Save className="w-4 h-4" />
+            <span>{saving ? 'Saving...' : 'Save Profile Changes'}</span>
+          </button>
+        </form>
       </div>
     </div>
   );
