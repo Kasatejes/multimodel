@@ -20,10 +20,9 @@ export const getGeminiClient = (customKey?: string): GoogleGenAI | null => {
 // Export active client instance for convenience
 export const ai = getGeminiClient();
 
-export const defaultModel = 'gemini-2.5-flash';
+export const defaultModel = 'gemini-2.0-flash';
 
 const candidateModels = [
-  'gemini-2.5-flash',
   'gemini-2.0-flash',
   'gemini-2.0-flash-lite'
 ];
