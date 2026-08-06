@@ -88,10 +88,20 @@ export const generateAIContent = async (
   fileParts?: any[],
   fileContext?: string
 ): Promise<{ text: string; modelUsed: string }> => {
+  const apiKey = getGeminiApiKey();
+
+  if (!apiKey) {
+    throw new Error('GEMINI_API_KEY is not configured. Please set your GEMINI_API_KEY in server/.env or Vercel environment variables to enable live document analysis.');
+  }
+
+  if (!apiKey.startsWith('AIzaSy')) {
+    throw new Error(`Invalid GEMINI_API_KEY format ('${apiKey.substring(0, 8)}...'). Valid Google Gemini API keys start with 'AIzaSy'. Please generate an API key from Google AI Studio (https://aistudio.google.com/app/apikey) and update GEMINI_API_KEY in server/.env.`);
+  }
+
   const client = getGeminiClient();
 
   if (!client) {
-    throw new Error('GEMINI_API_KEY is not configured. Please set your GEMINI_API_KEY in server/.env or Vercel environment variables to enable live document analysis.');
+    throw new Error('Failed to initialize Google Gemini client.');
   }
 
   const cleanPrompt = userPrompt.trim().toLowerCase();
@@ -190,6 +200,10 @@ export const generateAIContent = async (
         lastError = err;
       }
     }
+  }
+
+  if (lastError?.message?.includes('not found') || lastError?.message?.includes('404')) {
+    throw new Error(`Google Gemini API rejected the API key or model request. Valid API keys start with 'AIzaSy'. Please get a free API key at https://aistudio.google.com/app/apikey and update GEMINI_API_KEY in server/.env.`);
   }
 
   throw new Error(lastError?.message || 'Failed to generate response from Google Gemini API.');
