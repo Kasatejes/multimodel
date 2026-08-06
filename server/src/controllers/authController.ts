@@ -9,14 +9,14 @@ import { AuthRequest } from '../middleware/auth.js';
 const JWT_SECRET = process.env.JWT_SECRET || 'nexus_ai_super_secret_jwt_key_2026';
 
 const registerSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
-  full_name: z.string().min(2)
+  email: z.string().trim().toLowerCase().min(3, 'Email address is required'),
+  password: z.string().trim().min(1, 'Password is required'),
+  full_name: z.string().trim().optional()
 });
 
 const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string()
+  email: z.string().trim().toLowerCase().min(3, 'Email address is required'),
+  password: z.string().trim().min(1, 'Password is required')
 });
 
 export const register = async (req: AuthRequest, res: Response) => {
@@ -26,7 +26,13 @@ export const register = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ error: parse.error.errors[0].message });
     }
 
-    const { email, password, full_name } = parse.data;
+    let { email, password, full_name } = parse.data;
+    if (!full_name) full_name = email.split('@')[0];
+
+    // Simple email regex check
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: 'Please enter a valid email address format (e.g. name@example.com)' });
+    }
 
     // Check if user already exists
     const { data: existingUser } = await supabaseAdmin

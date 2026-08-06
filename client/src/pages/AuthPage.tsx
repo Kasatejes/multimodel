@@ -39,8 +39,18 @@ export const AuthPage: React.FC = () => {
     setLoading(true);
     try {
       if (mode === 'register') {
-        await register(email, password, fullName);
-        navigate('/dashboard');
+        try {
+          await register(email, password, fullName);
+          navigate('/dashboard');
+        } catch (err: any) {
+          const errMsg = err.response?.data?.error || '';
+          if (errMsg.includes('already exists')) {
+            setError('An account with this email already exists. Switched to Sign In form.');
+            setMode('signin');
+          } else {
+            setError(errMsg || 'Registration failed. Please check your details.');
+          }
+        }
       } else if (mode === 'signin') {
         await login(email, password);
         navigate('/dashboard');

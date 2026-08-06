@@ -1,9 +1,26 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const getApiUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl && !envUrl.includes('localhost')) {
+    return envUrl;
+  }
+
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    // On Vercel, Netlify, Render, or production hosting, use relative path '/api'
+    if (hostname.includes('vercel.app') || hostname.includes('render.com') || hostname.includes('netlify.app') || !hostname.includes('.')) {
+      if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+        return '/api';
+      }
+    }
+    return `http://${hostname}:5000/api`;
+  }
+  return 'http://localhost:5000/api';
+};
 
 export const api = axios.create({
-  baseURL: API_URL,
+  baseURL: getApiUrl(),
   headers: {
     'Content-Type': 'application/json'
   }
