@@ -94,10 +94,6 @@ export const generateAIContent = async (
     throw new Error('GEMINI_API_KEY is not configured. Please set your GEMINI_API_KEY in server/.env or Vercel environment variables to enable live document analysis.');
   }
 
-  if (!apiKey.startsWith('AIzaSy')) {
-    throw new Error(`Invalid GEMINI_API_KEY format ('${apiKey.substring(0, 8)}...'). Valid Google Gemini API keys start with 'AIzaSy'. Please generate an API key from Google AI Studio (https://aistudio.google.com/app/apikey) and update GEMINI_API_KEY in server/.env.`);
-  }
-
   const client = getGeminiClient();
 
   if (!client) {
