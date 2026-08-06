@@ -20,12 +20,12 @@ export const getGeminiClient = (customKey?: string): GoogleGenAI | null => {
 // Export active client instance for convenience
 export const ai = getGeminiClient();
 
-export const defaultModel = 'gemini-2.0-flash';
+export const defaultModel = 'gemini-2.5-flash';
 
 const candidateModels = [
+  'gemini-2.5-flash',
   'gemini-2.0-flash',
-  'gemini-1.5-flash',
-  'gemini-1.5-pro'
+  'gemini-2.0-flash-lite'
 ];
 
 // Helper to safely evaluate simple math expressions like "1+1", "100 / 4", "5 * 12"
@@ -200,13 +200,21 @@ export const generateAIContent = async (
   }
 
   if (
+    lastError?.message?.includes('RESOURCE_EXHAUSTED') ||
+    lastError?.message?.includes('429') ||
+    lastError?.message?.includes('Quota exceeded')
+  ) {
+    throw new Error('Google Gemini Free Tier rate limit reached (15 requests per minute). Please wait 15-30 seconds before sending another message.');
+  }
+
+  if (
     lastError?.message?.includes('ACCESS_TOKEN_TYPE_UNSUPPORTED') ||
     lastError?.message?.includes('UNAUTHENTICATED') ||
     lastError?.message?.includes('401') ||
     lastError?.message?.includes('not found') ||
     lastError?.message?.includes('404')
   ) {
-    throw new Error(`Google Gemini API rejected key (${(apiKey || '').substring(0, 10)}...). Reason: ACCESS_TOKEN_TYPE_UNSUPPORTED (GCP Cloud token format). Google Gemini requires a Google AI Studio API key starting with 'AIzaSy'. Please generate your key at https://aistudio.google.com/app/apikey.`);
+    throw new Error(`Google Gemini API key error. Please verify your GEMINI_API_KEY in server/.env at https://aistudio.google.com/app/apikey.`);
   }
 
   throw new Error(lastError?.message || 'Failed to generate response from Google Gemini API.');
