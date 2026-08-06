@@ -73,16 +73,6 @@ export const DashboardPage: React.FC = () => {
               Upload multimodal documents, PDFs, images, or audio to chat with Google Gemini AI, generate notes, flashcards, quizzes, and timeline milestones.
             </p>
           </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowUploadModal(true)}
-              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-glow-purple transition-all transform hover:scale-[1.02]"
-            >
-              <UploadCloud className="w-4 h-4" />
-              <span>Upload Multimodal File</span>
-            </button>
-          </div>
         </div>
       </div>
 
