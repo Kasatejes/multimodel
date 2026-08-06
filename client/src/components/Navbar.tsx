@@ -88,14 +88,6 @@ export const Navbar: React.FC = () => {
 
         {/* Right User Actions */}
         <div className="flex items-center gap-3">
-          <a
-            href="/settings"
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-950/60 border border-purple-500/30 hover:border-purple-400/50 text-xs font-semibold text-purple-300 transition-all"
-            title="Manage Gemini API Key"
-          >
-            <Key className="w-3.5 h-3.5 text-purple-400" />
-            <span className="text-[11px]">API Key</span>
-          </a>
           <div className="relative">
             <button
               onClick={() => setShowUserDropdown(!showUserDropdown)}
@@ -124,13 +116,6 @@ export const Navbar: React.FC = () => {
                 >
                   <User className="w-3.5 h-3.5 text-purple-400" />
                   <span>Profile Manager</span>
-                </a>
-                <a
-                  href="/settings"
-                  className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-gray-300 hover:bg-purple-900/40 transition-colors"
-                >
-                  <Settings className="w-3.5 h-3.5 text-purple-400" />
-                  <span>Settings & Security</span>
                 </a>
                 <div className="border-t border-purple-500/20 my-1" />
                 <button

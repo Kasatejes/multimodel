@@ -16,7 +16,6 @@ import { ImageLibraryPage } from './pages/ImageLibraryPage';
 import { TranscriptLibraryPage } from './pages/TranscriptLibraryPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { ProfilePage } from './pages/ProfilePage';
-import { SettingsPage } from './pages/SettingsPage';
 
 const ProtectedLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { token, loading } = useAuth();
@@ -116,14 +115,7 @@ export const App: React.FC = () => {
                 </ProtectedLayout>
               }
             />
-            <Route
-              path="/settings"
-              element={
-                <ProtectedLayout>
-                  <SettingsPage />
-                </ProtectedLayout>
-              }
-            />
+
 
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>

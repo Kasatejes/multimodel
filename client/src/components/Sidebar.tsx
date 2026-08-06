@@ -22,8 +22,7 @@ const navItems = [
   { path: '/images', label: 'AI Image Library', icon: ImageIcon },
   { path: '/transcripts', label: 'Transcript Library', icon: FileAudio },
   { path: '/analytics', label: 'Analytics', icon: BarChart3 },
-  { path: '/profile', label: 'Profile', icon: User },
-  { path: '/settings', label: 'Settings', icon: Settings }
+  { path: '/profile', label: 'Profile', icon: User }
 ];
 
 export const Sidebar: React.FC = () => {
