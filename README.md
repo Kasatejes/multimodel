@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Nexus AI – Multimodal Intelligence Workspace
 
 Nexus AI is a premium, production-ready full-stack AI application where users can upload PDFs, images, audio, videos, documents, and spreadsheets, then interact with Google Gemini AI for contextual chat, auto-summarization, note generation, flashcard creation, interactive quizzes, interview preparation, and action item timelines.
@@ -162,3 +163,6 @@ npm run dev
 ## License
 
 MIT License. Built for **Nexus AI – Multimodal Intelligence Workspace**.
+=======
+# multimodel
+>>>>>>> 68c976aad8ed9f185ade60b56d704e8caad57265
