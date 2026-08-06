@@ -1,44 +1,131 @@
 import { Response } from 'express';
 import { randomUUID } from 'crypto';
 import { AuthRequest } from '../middleware/auth.js';
-import { ai, defaultModel, generateAIContent } from '../config/gemini.js';
+import { getGeminiApiKey, getGeminiClient, ai, defaultModel, generateAIContent } from '../config/gemini.js';
 import { supabaseAdmin } from '../config/supabase.js';
 import { memoryMessagesStore, memoryChatsStore } from './chatController.js';
+import { memoryFilesStore } from './fileController.js';
 
-// Helper to fetch text content of attached file IDs
-const getAttachedContexts = async (fileIds: string[], userId: string): Promise<string> => {
-  if (!fileIds || fileIds.length === 0) return '';
+interface AttachedFilePartsResult {
+  fileParts: any[];
+  fileContext: string;
+}
 
-  const { data: files } = await supabaseAdmin
-    .from('files')
-    .select('name, file_type, parsed_text, ai_summary')
-    .in('id', fileIds)
-    .eq('user_id', userId);
+// Helper to fetch inline file parts (PDF, images, text) and text contexts for attached files
+const getAttachedFilePartsAndContext = async (
+  fileIds: string[],
+  userId: string,
+  rawFilePayloads?: any[]
+): Promise<AttachedFilePartsResult> => {
+  const fileParts: any[] = [];
+  const contextList: string[] = [];
 
-  if (!files || files.length === 0) return '';
+  // Handle direct file payloads passed in request body (base64 PDF/image objects)
+  if (rawFilePayloads && Array.isArray(rawFilePayloads)) {
+    for (const raw of rawFilePayloads) {
+      if (raw.base64 && (raw.mime_type || raw.file_type)) {
+        fileParts.push({
+          inlineData: {
+            mimeType: raw.mime_type || (raw.file_type === 'pdf' ? 'application/pdf' : 'text/plain'),
+            data: raw.base64.replace(/^data:[^;]+;base64,/, '')
+          }
+        });
+      }
+      if (raw.content || raw.parsed_text) {
+        contextList.push(`--- ATTACHED PAYLOAD: ${raw.name || 'document'} ---\n${raw.content || raw.parsed_text}\n--- END ATTACHMENT ---`);
+      }
+    }
+  }
 
-  return files.map(f => `--- ATTACHED FILE: ${f.name} (${f.file_type.toUpperCase()}) ---\nSummary: ${f.ai_summary || 'N/A'}\nContent:\n${(f.parsed_text || '').substring(0, 8000)}\n--- END FILE ---`).join('\n\n');
+  if (!fileIds || fileIds.length === 0) {
+    return { fileParts, fileContext: contextList.join('\n\n') };
+  }
+
+  // Retrieve files from database and memory store
+  let dbFiles: any[] = [];
+  try {
+    const { data: files } = await supabaseAdmin
+      .from('files')
+      .select('*')
+      .in('id', fileIds)
+      .eq('user_id', userId);
+    if (files) dbFiles = files;
+  } catch (e) {}
+
+  const localFiles = memoryFilesStore.filter(f => fileIds.includes(f.id));
+  const fileMap = new Map();
+  [...dbFiles, ...localFiles].forEach(f => fileMap.set(f.id, f));
+  const matchedFiles = Array.from(fileMap.values());
+
+  for (const f of matchedFiles) {
+    let base64Data = f.base64 || '';
+    if (!base64Data && f.buffer) {
+      base64Data = Buffer.from(f.buffer).toString('base64');
+    }
+
+    // Try downloading from Supabase storage if base64Data is missing
+    if (!base64Data && f.storage_bucket && f.storage_path) {
+      try {
+        const { data: blob } = await supabaseAdmin.storage
+          .from(f.storage_bucket)
+          .download(f.storage_path);
+        if (blob) {
+          const arrayBuffer = await blob.arrayBuffer();
+          base64Data = Buffer.from(arrayBuffer).toString('base64');
+        }
+      } catch (err) {
+        console.warn(`[Storage Download Note] File ${f.name} download:`, err);
+      }
+    }
+
+    if (base64Data) {
+      fileParts.push({
+        inlineData: {
+          mimeType: f.mime_type || (f.file_type === 'pdf' ? 'application/pdf' : 'text/plain'),
+          data: base64Data.replace(/^data:[^;]+;base64,/, '')
+        }
+      });
+    }
+
+    const textSnippet = f.parsed_text || f.ai_summary || '';
+    contextList.push(
+      `--- ATTACHED FILE: ${f.name} (${(f.mime_type || f.file_type || 'document').toUpperCase()}) ---\nSummary: ${f.ai_summary || 'N/A'}\nContent:\n${textSnippet.substring(0, 10000)}\n--- END FILE ---`
+    );
+  }
+
+  return {
+    fileParts,
+    fileContext: contextList.join('\n\n')
+  };
 };
 
 export const chatMultimodal = async (req: AuthRequest, res: Response) => {
   try {
+    const apiKey = getGeminiApiKey();
+    if (!apiKey) {
+      return res.status(400).json({
+        error: 'GEMINI_API_KEY is not configured. Please set your GEMINI_API_KEY in server/.env or Vercel environment variables to enable live document analysis.'
+      });
+    }
+
     const userId = req.user?.id || randomUUID();
-    const { prompt, chat_id, workspace_id, file_ids } = req.body;
+    const { prompt, chat_id, workspace_id, file_ids, attached_files, files } = req.body;
 
     if (!prompt) {
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
-    const fileContext = await getAttachedContexts(file_ids || [], userId || '');
+    const rawFiles = attached_files || files || [];
+    const { fileParts, fileContext } = await getAttachedFilePartsAndContext(file_ids || [], userId, rawFiles);
 
-    const fullPrompt = `You are Nexus AI, a state-of-the-art Multimodal Intelligence Workspace assistant.
-You provide clear, accurate, structured, and simple to understand answers.
+    const fullPrompt = `You are Nexus AI, an advanced Multimodal Intelligence Workspace assistant powered by Google Gemini.
+You analyze uploaded documents, PDFs, images, audio, and user text queries with extreme precision.
 
-${fileContext ? `Context from uploaded user files:\n${fileContext}\n\n` : ''}
+${fileContext ? `Extracted Document Context:\n${fileContext}\n\n` : ''}
 User Query: ${prompt}
 `;
 
-    const { text: reply, modelUsed } = await generateAIContent(fullPrompt, prompt, fileContext);
+    const { text: reply, modelUsed } = await generateAIContent(fullPrompt, prompt, fileParts, fileContext);
 
     // Record Messages permanently in Chat History
     if (chat_id) {
@@ -84,10 +171,11 @@ User Query: ${prompt}
       details: { prompt_length: prompt.length, attached_files: file_ids?.length || 0 }
     });
 
-    return res.status(200).json({ reply, model: defaultModel });
+    return res.status(200).json({ reply, model: modelUsed || defaultModel });
   } catch (error: any) {
     console.error('Chat Multimodal Error:', error);
-    return res.status(500).json({ error: error.message || 'Error generating AI response' });
+    const status = error.message?.includes('GEMINI_API_KEY') ? 400 : 500;
+    return res.status(status).json({ error: error.message || 'Error processing document analysis request with Google Gemini.' });
   }
 };
 
