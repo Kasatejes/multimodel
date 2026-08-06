@@ -82,7 +82,7 @@ export const DashboardPage: React.FC = () => {
           </div>
           <div>
             <p className="text-[10px] uppercase font-bold text-purple-400 tracking-wider">Uploaded Files</p>
-            <h3 className="text-xl font-extrabold text-white">{stats.total_files}</h3>
+            <h3 className="text-xl font-extrabold text-white">{stats?.total_files ?? 0}</h3>
           </div>
         </div>
 
@@ -92,7 +92,7 @@ export const DashboardPage: React.FC = () => {
           </div>
           <div>
             <p className="text-[10px] uppercase font-bold text-indigo-400 tracking-wider">AI Chats</p>
-            <h3 className="text-xl font-extrabold text-white">{stats.total_chats}</h3>
+            <h3 className="text-xl font-extrabold text-white">{stats?.total_chats ?? 0}</h3>
           </div>
         </div>
 
@@ -102,7 +102,7 @@ export const DashboardPage: React.FC = () => {
           </div>
           <div>
             <p className="text-[10px] uppercase font-bold text-pink-400 tracking-wider">Study Assets</p>
-            <h3 className="text-xl font-extrabold text-white">{stats.total_notes}</h3>
+            <h3 className="text-xl font-extrabold text-white">{stats?.total_notes ?? 0}</h3>
           </div>
         </div>
 
@@ -112,7 +112,7 @@ export const DashboardPage: React.FC = () => {
           </div>
           <div>
             <p className="text-[10px] uppercase font-bold text-cyan-400 tracking-wider">Storage Used</p>
-            <h3 className="text-xl font-extrabold text-white">{stats.storage_mb} MB</h3>
+            <h3 className="text-xl font-extrabold text-white">{stats?.storage_mb ?? '0'} MB</h3>
           </div>
         </div>
       </div>

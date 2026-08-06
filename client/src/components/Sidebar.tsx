@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
+import { NexusLogo } from './NexusLogo';
 
 const navItems = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -24,8 +25,6 @@ const navItems = [
   { path: '/profile', label: 'Profile', icon: User },
   { path: '/settings', label: 'Settings', icon: Settings }
 ];
-
-import { NexusLogo } from './NexusLogo';
 
 export const Sidebar: React.FC = () => {
   const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {

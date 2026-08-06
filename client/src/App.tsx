@@ -6,6 +6,7 @@ import { ThemeProvider } from './context/ThemeContext';
 
 import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 import { AuthPage } from './pages/AuthPage';
 import { DashboardPage } from './pages/DashboardPage';
@@ -33,28 +34,31 @@ const ProtectedLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
   }
 
   return (
-    <WorkspaceProvider>
-      <div className="min-h-screen bg-dark-950 text-gray-100 relative">
-        <div className="purple-glow-bg" />
-        <Navbar />
-        <div className="flex">
-          <Sidebar />
-          <main className="flex-1 p-4 lg:p-6 max-w-7xl mx-auto overflow-x-hidden relative z-10">
-            {children}
-          </main>
+    <ErrorBoundary>
+      <WorkspaceProvider>
+        <div className="min-h-screen bg-dark-950 text-gray-100 relative">
+          <div className="purple-glow-bg" />
+          <Navbar />
+          <div className="flex">
+            <Sidebar />
+            <main className="flex-1 p-4 lg:p-6 max-w-7xl mx-auto overflow-x-hidden relative z-10">
+              {children}
+            </main>
+          </div>
         </div>
-      </div>
-    </WorkspaceProvider>
+      </WorkspaceProvider>
+    </ErrorBoundary>
   );
 };
 
 export const App: React.FC = () => {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <Router>
-          <Routes>
-            <Route path="/auth" element={<AuthPage />} />
+    <ErrorBoundary>
+      <ThemeProvider>
+        <AuthProvider>
+          <Router>
+            <Routes>
+              <Route path="/auth" element={<AuthPage />} />
 
             <Route
               path="/dashboard"
@@ -126,6 +130,7 @@ export const App: React.FC = () => {
         </Router>
       </AuthProvider>
     </ThemeProvider>
+    </ErrorBoundary>
   );
 };
 
