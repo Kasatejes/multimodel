@@ -199,8 +199,14 @@ export const generateAIContent = async (
     }
   }
 
-  if (lastError?.message?.includes('not found') || lastError?.message?.includes('404')) {
-    throw new Error(`Google Gemini API rejected the API key or model request. Valid API keys start with 'AIzaSy'. Please get a free API key at https://aistudio.google.com/app/apikey and update GEMINI_API_KEY in server/.env.`);
+  if (
+    lastError?.message?.includes('ACCESS_TOKEN_TYPE_UNSUPPORTED') ||
+    lastError?.message?.includes('UNAUTHENTICATED') ||
+    lastError?.message?.includes('401') ||
+    lastError?.message?.includes('not found') ||
+    lastError?.message?.includes('404')
+  ) {
+    throw new Error(`Google Gemini API rejected key (${(apiKey || '').substring(0, 10)}...). Reason: ACCESS_TOKEN_TYPE_UNSUPPORTED (GCP Cloud token format). Google Gemini requires a Google AI Studio API key starting with 'AIzaSy'. Please generate your key at https://aistudio.google.com/app/apikey.`);
   }
 
   throw new Error(lastError?.message || 'Failed to generate response from Google Gemini API.');
