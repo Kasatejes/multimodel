@@ -25,6 +25,8 @@ const navItems = [
   { path: '/settings', label: 'Settings', icon: Settings }
 ];
 
+import { NexusLogo } from './NexusLogo';
+
 export const Sidebar: React.FC = () => {
   const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
     return localStorage.getItem('nexus_sidebar_collapsed') === 'true';
@@ -86,9 +88,7 @@ export const Sidebar: React.FC = () => {
       {!isCollapsed && (
         <div className="p-3.5 rounded-2xl bg-gradient-to-b from-purple-900/40 to-dark-950 border border-purple-500/30 text-center relative overflow-hidden">
           <div className="flex justify-center mb-2">
-            <div className="w-8 h-8 rounded-xl bg-purple-600/30 border border-purple-400/40 flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-purple-300 animate-pulse" />
-            </div>
+            <NexusLogo size={32} showText={false} />
           </div>
           <h4 className="text-xs font-bold text-white mb-1">Nexus AI Multimodal</h4>
           <p className="text-[10px] text-gray-400 mb-2">GPT Image, Whisper & Gemini Active</p>

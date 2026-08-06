@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { NexusLogo } from '../components/NexusLogo';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, Mail, Lock, User, ArrowRight, ShieldCheck, FileCheck, Brain, CheckCircle2, ArrowLeft, KeyRound, Loader2 } from 'lucide-react';
 
@@ -135,12 +136,7 @@ export const AuthPage: React.FC = () => {
         <div className="p-8 lg:p-12 bg-gradient-to-b from-purple-900/40 via-dark-900/60 to-dark-950 flex flex-col justify-between border-r border-purple-500/20">
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center shadow-glow-purple">
-                <Sparkles className="w-6 h-6 text-white" />
-              </div>
-              <span className="font-extrabold text-2xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-purple-300">
-                Nexus AI
-              </span>
+              <NexusLogo size={42} showText={true} />
             </div>
 
             <h2 className="text-2xl lg:text-3xl font-extrabold text-white leading-tight mb-4">

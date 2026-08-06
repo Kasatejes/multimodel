@@ -14,6 +14,8 @@ import {
 import { GlobalSearchModal } from './GlobalSearchModal';
 import { CreateWorkspaceModal } from './CreateWorkspaceModal';
 
+import { NexusLogo } from './NexusLogo';
+
 export const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
   const { activeWorkspace, workspaces, setActiveWorkspace } = useWorkspace();
@@ -28,13 +30,8 @@ export const Navbar: React.FC = () => {
       <header className="sticky top-0 z-30 w-full glass-panel border-b border-purple-500/20 px-4 lg:px-6 py-3 flex items-center justify-between">
         {/* Left: Brand + Active Workspace Selector */}
         <div className="flex items-center gap-4">
-          <a href="/dashboard" className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center shadow-glow-purple">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-extrabold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-purple-200 to-purple-400">
-              Nexus AI
-            </span>
+          <a href="/dashboard" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
+            <NexusLogo size={36} showText={true} />
           </a>
 
           <div className="hidden sm:block h-5 w-[1px] bg-purple-500/30" />

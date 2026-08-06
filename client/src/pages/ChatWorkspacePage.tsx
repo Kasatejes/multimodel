@@ -408,7 +408,23 @@ export const ChatWorkspacePage: React.FC = () => {
                     </div>
                   )}
 
-                  <div className="whitespace-pre-wrap font-sans">{msg.content}</div>
+                  {(() => {
+                    const imgMatch = msg.content.match(/!\[(.*?)\]\((data:image\/[^)]+)\)/);
+                    if (imgMatch) {
+                      const altText = imgMatch[1];
+                      const imgSrc = imgMatch[2];
+                      const textAfter = msg.content.replace(/!\[(.*?)\]\((data:image\/[^)]+)\)/, '').trim();
+                      return (
+                        <div className="space-y-3 my-1">
+                          <div className="relative overflow-hidden rounded-2xl border border-purple-500/40 shadow-glow-purple bg-dark-950/90 p-1">
+                            <img src={imgSrc} alt={altText} className="w-full max-h-[450px] object-contain rounded-xl" />
+                          </div>
+                          {textAfter && <div className="whitespace-pre-wrap font-sans text-xs">{textAfter}</div>}
+                        </div>
+                      );
+                    }
+                    return <div className="whitespace-pre-wrap font-sans">{msg.content}</div>;
+                  })()}
 
                   {msg.role === 'model' && (
                     <div className="flex items-center justify-end gap-1 pt-1 opacity-0 group-hover:opacity-100 transition-opacity">

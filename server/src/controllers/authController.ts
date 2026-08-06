@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import { randomUUID } from 'crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
@@ -54,7 +55,7 @@ export const register = async (req: AuthRequest, res: Response) => {
 
     if (userError || !user) {
       // Fallback in-memory user token generation if Supabase connection is offline
-      const mockUserId = `user_${Date.now()}`;
+      const mockUserId = randomUUID();
       const token = jwt.sign(
         { id: mockUserId, email: email.toLowerCase(), full_name, role: 'user' },
         JWT_SECRET,
@@ -119,7 +120,7 @@ export const login = async (req: AuthRequest, res: Response) => {
     if (error || !user) {
       // Fallback dev login
       if (email && password.length >= 6) {
-        const mockUserId = `user_${Date.now()}`;
+        const mockUserId = randomUUID();
         const token = jwt.sign(
           { id: mockUserId, email: email.toLowerCase(), full_name: email.split('@')[0], role: 'user' },
           JWT_SECRET,
