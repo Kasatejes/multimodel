@@ -32,8 +32,16 @@ export class ErrorBoundary extends Component<Props, State> {
               !
             </div>
             <h2 className="text-xl font-bold">Something went wrong</h2>
-            <p className="text-xs text-gray-400">
-              {this.state.error?.message || 'An unexpected rendering error occurred in the workspace.'}
+            <p className="text-xs text-gray-400 max-w-sm mx-auto overflow-hidden text-ellipsis">
+              {(() => {
+                const err = this.state.error;
+                if (!err) return 'An unexpected rendering error occurred in the workspace.';
+                if (typeof err === 'string') return err;
+                if (typeof err === 'object') {
+                  return err.message || JSON.stringify(err);
+                }
+                return String(err);
+              })()}
             </p>
             <div className="flex items-center justify-center gap-3 pt-2">
               <button

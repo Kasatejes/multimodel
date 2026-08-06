@@ -410,11 +410,18 @@ export const ChatWorkspacePage: React.FC = () => {
                   )}
 
                   {(() => {
-                    const imgMatch = msg.content.match(/!\[(.*?)\]\((data:image\/[^)]+)\)/);
+                    const rawContent = msg.content;
+                    const safeContent = typeof rawContent === 'string'
+                      ? rawContent
+                      : typeof rawContent === 'object' && rawContent !== null
+                        ? (rawContent.error || rawContent.message || JSON.stringify(rawContent))
+                        : String(rawContent || '');
+
+                    const imgMatch = safeContent.match(/!\[(.*?)\]\((data:image\/[^)]+)\)/);
                     if (imgMatch) {
                       const altText = imgMatch[1];
                       const imgSrc = imgMatch[2];
-                      const textAfter = msg.content.replace(/!\[(.*?)\]\((data:image\/[^)]+)\)/, '').trim();
+                      const textAfter = safeContent.replace(/!\[(.*?)\]\((data:image\/[^)]+)\)/, '').trim();
                       return (
                         <div className="space-y-3 my-1">
                           <div className="relative overflow-hidden rounded-2xl border border-purple-500/40 shadow-glow-purple bg-dark-950/90 p-1 group/img">
@@ -435,7 +442,7 @@ export const ChatWorkspacePage: React.FC = () => {
                         </div>
                       );
                     }
-                    return <div className="whitespace-pre-wrap font-sans">{msg.content}</div>;
+                    return <div className="whitespace-pre-wrap font-sans">{safeContent}</div>;
                   })()}
 
                   {msg.role === 'model' && (
