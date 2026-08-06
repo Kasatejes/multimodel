@@ -3,7 +3,6 @@ import { useWorkspace } from '../context/WorkspaceContext';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/axios';
 import { useNavigate } from 'react-router-dom';
-import { FileUploadModal } from '../components/FileUploadModal';
 import {
   FileText,
   MessageSquareText,
@@ -24,7 +23,6 @@ export const DashboardPage: React.FC = () => {
   const { activeWorkspace } = useWorkspace();
   const navigate = useNavigate();
 
-  const [showUploadModal, setShowUploadModal] = useState(false);
   const [stats, setStats] = useState({
     total_files: 0,
     total_chats: 0,
@@ -72,16 +70,6 @@ export const DashboardPage: React.FC = () => {
             <p className="text-xs text-gray-300 max-w-xl">
               Upload multimodal documents, PDFs, images, or audio to chat with Google Gemini AI, generate notes, flashcards, quizzes, and timeline milestones.
             </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowUploadModal(true)}
-              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-glow-purple transition-all transform hover:scale-[1.02]"
-            >
-              <UploadCloud className="w-4 h-4" />
-              <span>Upload Multimodal File</span>
-            </button>
           </div>
         </div>
       </div>
@@ -216,10 +204,10 @@ export const DashboardPage: React.FC = () => {
             <UploadCloud className="w-8 h-8 text-purple-400/60 mx-auto mb-2" />
             <p className="text-xs text-gray-300 font-medium">No files uploaded in this workspace yet.</p>
             <button
-              onClick={() => setShowUploadModal(true)}
+              onClick={() => navigate('/files')}
               className="mt-3 px-4 py-2 rounded-xl bg-purple-600/40 text-purple-200 hover:bg-purple-600 text-xs font-semibold"
             >
-              Upload Your First File
+              View Files Page
             </button>
           </div>
         ) : (
@@ -247,13 +235,6 @@ export const DashboardPage: React.FC = () => {
           </div>
         )}
       </div>
-
-      {showUploadModal && (
-        <FileUploadModal
-          onClose={() => setShowUploadModal(false)}
-          onSuccess={fetchDashboardData}
-        />
-      )}
     </div>
   );
 };
