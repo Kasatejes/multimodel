@@ -7,6 +7,36 @@ import { getGeminiClient, generateFallbackSVG } from '../config/gemini.js';
 // In-Memory Backup Store for AI Image Library
 export const memoryImageLibraryStore: any[] = [];
 
+export const autoSaveImageToLibrary = async (
+  userId: string,
+  workspaceId: string | null,
+  prompt: string,
+  imageUrl: string,
+  model: string = 'gemini-image-synthesizer'
+) => {
+  const imageId = randomUUID();
+  const imageRecord = {
+    id: imageId,
+    user_id: userId,
+    workspace_id: workspaceId || null,
+    prompt,
+    image_url: imageUrl,
+    model,
+    is_favorite: false,
+    created_at: new Date().toISOString()
+  };
+
+  let insertedDb = null;
+  try {
+    const { data } = await supabaseAdmin.from('images').insert(imageRecord).select('*').single();
+    if (data) insertedDb = data;
+  } catch (e) {}
+
+  const finalRecord = insertedDb || imageRecord;
+  memoryImageLibraryStore.unshift(finalRecord);
+  return finalRecord;
+};
+
 export const generateAndStoreImage = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id || randomUUID();

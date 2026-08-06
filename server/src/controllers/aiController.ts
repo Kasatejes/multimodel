@@ -5,6 +5,7 @@ import { getGeminiApiKey, getGeminiClient, ai, defaultModel, generateAIContent }
 import { supabaseAdmin } from '../config/supabase.js';
 import { memoryMessagesStore, memoryChatsStore } from './chatController.js';
 import { memoryFilesStore } from './fileController.js';
+import { autoSaveImageToLibrary } from './imageController.js';
 
 interface AttachedFilePartsResult {
   fileParts: any[];
@@ -127,6 +128,12 @@ User Query: ${prompt}
 `;
 
     const { text: reply, modelUsed } = await generateAIContent(fullPrompt, prompt, fileParts, fileContext, customApiKey);
+
+    // Auto-save generated images directly into AI Image Library
+    const imgMatch = reply.match(/!\[.*?\]\((data:image\/[^)]+)\)/);
+    if (imgMatch && imgMatch[1]) {
+      autoSaveImageToLibrary(userId, workspace_id || null, prompt, imgMatch[1], modelUsed || 'gemini-imagen-3').catch(() => {});
+    }
 
     // Record Messages permanently in Chat History
     if (chat_id) {

@@ -32,7 +32,8 @@ import {
   Wand2,
   ShieldCheck,
   AlertTriangle,
-  Info
+  Info,
+  Download
 } from 'lucide-react';
 
 export const ChatWorkspacePage: React.FC = () => {
@@ -416,8 +417,19 @@ export const ChatWorkspacePage: React.FC = () => {
                       const textAfter = msg.content.replace(/!\[(.*?)\]\((data:image\/[^)]+)\)/, '').trim();
                       return (
                         <div className="space-y-3 my-1">
-                          <div className="relative overflow-hidden rounded-2xl border border-purple-500/40 shadow-glow-purple bg-dark-950/90 p-1">
+                          <div className="relative overflow-hidden rounded-2xl border border-purple-500/40 shadow-glow-purple bg-dark-950/90 p-1 group/img">
                             <img src={imgSrc} alt={altText} className="w-full max-h-[450px] object-contain rounded-xl" />
+                            <div className="absolute top-3 right-3 flex items-center gap-2">
+                              <a
+                                href={imgSrc}
+                                download={`nexus-ai-image-${Date.now()}.png`}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-950/90 hover:bg-purple-600 border border-purple-500/50 text-white font-extrabold text-[11px] shadow-lg transition-all"
+                                title="Download AI Image"
+                              >
+                                <Download className="w-3.5 h-3.5" />
+                                <span>Download Image</span>
+                              </a>
+                            </div>
                           </div>
                           {textAfter && <div className="whitespace-pre-wrap font-sans text-xs">{textAfter}</div>}
                         </div>
