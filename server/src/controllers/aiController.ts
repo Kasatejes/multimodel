@@ -101,10 +101,11 @@ const getAttachedFilePartsAndContext = async (
 
 export const chatMultimodal = async (req: AuthRequest, res: Response) => {
   try {
-    const apiKey = getGeminiApiKey();
+    const customApiKey = (req.headers['x-gemini-api-key'] as string) || req.body?.custom_api_key;
+    const apiKey = getGeminiApiKey(customApiKey);
     if (!apiKey) {
       return res.status(400).json({
-        error: 'GEMINI_API_KEY is not configured. Please set your GEMINI_API_KEY in server/.env or Vercel environment variables to enable live document analysis.'
+        error: 'GEMINI_API_KEY is not configured. Please enter your Gemini API Key in Settings or set GEMINI_API_KEY in server/.env to enable live AI feature analysis.'
       });
     }
 
@@ -125,7 +126,7 @@ ${fileContext ? `Extracted Document Context:\n${fileContext}\n\n` : ''}
 User Query: ${prompt}
 `;
 
-    const { text: reply, modelUsed } = await generateAIContent(fullPrompt, prompt, fileParts, fileContext);
+    const { text: reply, modelUsed } = await generateAIContent(fullPrompt, prompt, fileParts, fileContext, customApiKey);
 
     // Record Messages permanently in Chat History
     if (chat_id) {

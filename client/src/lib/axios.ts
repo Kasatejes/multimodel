@@ -26,12 +26,16 @@ export const api = axios.create({
   }
 });
 
-// Request interceptor to attach JWT token
+// Request interceptor to attach JWT token and custom Gemini API key
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('nexus_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    const customGeminiKey = localStorage.getItem('nexus_custom_gemini_api_key');
+    if (customGeminiKey && customGeminiKey.trim()) {
+      config.headers['x-gemini-api-key'] = customGeminiKey.trim();
     }
     return config;
   },

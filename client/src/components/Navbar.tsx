@@ -9,7 +9,8 @@ import {
   User,
   LogOut,
   Settings,
-  ShieldCheck
+  ShieldCheck,
+  Key
 } from 'lucide-react';
 import { GlobalSearchModal } from './GlobalSearchModal';
 import { CreateWorkspaceModal } from './CreateWorkspaceModal';
@@ -87,6 +88,14 @@ export const Navbar: React.FC = () => {
 
         {/* Right User Actions */}
         <div className="flex items-center gap-3">
+          <a
+            href="/settings"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-950/60 border border-purple-500/30 hover:border-purple-400/50 text-xs font-semibold text-purple-300 transition-all"
+            title="Manage Gemini API Key"
+          >
+            <Key className="w-3.5 h-3.5 text-purple-400" />
+            <span className="text-[11px]">API Key</span>
+          </a>
           <div className="relative">
             <button
               onClick={() => setShowUserDropdown(!showUserDropdown)}

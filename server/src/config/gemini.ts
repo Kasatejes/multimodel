@@ -3,16 +3,16 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-export const getGeminiApiKey = (): string | null => {
-  const key = process.env.GEMINI_API_KEY || '';
+export const getGeminiApiKey = (customKey?: string): string | null => {
+  const key = (customKey && customKey.trim()) || process.env.GEMINI_API_KEY || '';
   if (!key || key.trim() === '' || key === 'mock_key_for_dev') {
     return null;
   }
   return key.trim();
 };
 
-export const getGeminiClient = (): GoogleGenAI | null => {
-  const apiKey = getGeminiApiKey();
+export const getGeminiClient = (customKey?: string): GoogleGenAI | null => {
+  const apiKey = getGeminiApiKey(customKey);
   if (!apiKey) return null;
   return new GoogleGenAI({ apiKey });
 };
@@ -86,15 +86,16 @@ export const generateAIContent = async (
   fullPrompt: string,
   userPrompt: string,
   fileParts?: any[],
-  fileContext?: string
+  fileContext?: string,
+  customApiKey?: string
 ): Promise<{ text: string; modelUsed: string }> => {
-  const apiKey = getGeminiApiKey();
+  const apiKey = getGeminiApiKey(customApiKey);
 
   if (!apiKey) {
-    throw new Error('GEMINI_API_KEY is not configured. Please set your GEMINI_API_KEY in server/.env or Vercel environment variables to enable live document analysis.');
+    throw new Error('GEMINI_API_KEY is not configured. Please enter your Gemini API Key in Settings or set GEMINI_API_KEY in environment variables.');
   }
 
-  const client = getGeminiClient();
+  const client = getGeminiClient(customApiKey);
 
   if (!client) {
     throw new Error('Failed to initialize Google Gemini client.');
