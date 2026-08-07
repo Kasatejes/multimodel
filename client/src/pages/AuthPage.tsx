@@ -21,6 +21,18 @@ export const AuthPage: React.FC = () => {
   const [error, setError] = useState('');
   const [infoMsg, setInfoMsg] = useState('');
 
+  const extractErrorMessage = (err: any, fallback: string): string => {
+    if (!err) return fallback;
+    if (typeof err === 'string') return err;
+    const raw = err.response?.data?.error || err.response?.data?.message || err.message || err;
+    if (typeof raw === 'string') return raw;
+    if (typeof raw === 'object' && raw !== null) {
+      if (typeof raw.message === 'string') return raw.message;
+      return JSON.stringify(raw);
+    }
+    return String(raw || fallback);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -43,8 +55,8 @@ export const AuthPage: React.FC = () => {
           await register(email, password, fullName);
           navigate('/dashboard');
         } catch (err: any) {
-          const errMsg = err.response?.data?.error || '';
-          if (errMsg.includes('already exists')) {
+          const errMsg = extractErrorMessage(err, 'Registration failed');
+          if (errMsg.toLowerCase().includes('already exists')) {
             setError('An account with this email already exists. Switched to Sign In form.');
             setMode('signin');
           } else {
@@ -56,7 +68,7 @@ export const AuthPage: React.FC = () => {
         navigate('/dashboard');
       }
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Authentication failed. Please check your credentials.');
+      setError(extractErrorMessage(err, 'Authentication failed. Please check your credentials.'));
     } finally {
       setLoading(false);
     }
@@ -104,7 +116,7 @@ export const AuthPage: React.FC = () => {
       if (res.reset_token) setResetToken(res.reset_token);
       setResetStep(2);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to request password reset');
+      setError(extractErrorMessage(err, 'Failed to request password reset'));
     } finally {
       setLoading(false);
     }
@@ -128,7 +140,7 @@ export const AuthPage: React.FC = () => {
         setInfoMsg('Password updated! You can now log in.');
       }, 1500);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to reset password');
+      setError(extractErrorMessage(err, 'Failed to reset password'));
     } finally {
       setLoading(false);
     }
@@ -218,7 +230,7 @@ export const AuthPage: React.FC = () => {
 
           {error && (
             <div className="mb-4 p-3 rounded-xl bg-red-950/60 border border-red-500/40 text-red-300 text-xs">
-              {error}
+              {typeof error === 'string' ? error : (error as any)?.message || JSON.stringify(error)}
             </div>
           )}
 

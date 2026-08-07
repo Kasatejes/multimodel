@@ -20,7 +20,8 @@ export const LoginPage: React.FC = () => {
       navigate('/dashboard');
     } catch (err: any) {
       console.error('[LoginPage] Sign in error:', err);
-      setError(err.message || 'Failed to sign in. Please check your credentials.');
+      const msg = typeof err === 'string' ? err : err?.message || err?.error || 'Failed to sign in. Please check your credentials.';
+      setError(typeof msg === 'string' ? msg : JSON.stringify(msg));
     } finally {
       setIsLoading(false);
     }

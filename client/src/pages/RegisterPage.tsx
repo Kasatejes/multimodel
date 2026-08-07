@@ -20,7 +20,8 @@ export const RegisterPage: React.FC = () => {
       navigate('/onboarding');
     } catch (err: any) {
       console.error('[RegisterPage] Registration error:', err);
-      setError(err.message || 'Registration failed. Please try again.');
+      const msg = typeof err === 'string' ? err : err?.message || err?.error || 'Registration failed. Please try again.';
+      setError(typeof msg === 'string' ? msg : JSON.stringify(msg));
     } finally {
       setIsLoading(false);
     }

@@ -12,13 +12,17 @@ export const ErrorAlert: React.FC<ErrorAlertProps> = ({
   message,
   onDismiss,
 }) => {
+  const displayMessage = typeof message === 'string'
+    ? message
+    : (message as any)?.message || (typeof message === 'object' ? JSON.stringify(message) : String(message));
+
   return (
     <div className="bg-red-950/50 border border-red-800/60 text-red-200 p-4 rounded-xl flex items-start justify-between shadow-lg backdrop-blur-sm my-4">
       <div className="flex items-start space-x-3">
         <AlertTriangle className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />
         <div>
           <h4 className="font-semibold text-sm text-red-200">{title}</h4>
-          <p className="text-xs text-red-300/90 mt-1 leading-relaxed">{message}</p>
+          <p className="text-xs text-red-300/90 mt-1 leading-relaxed">{displayMessage}</p>
         </div>
       </div>
       {onDismiss && (
