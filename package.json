@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
-    "build": "npm run build --prefix client",
+    "build": "npm run build --prefix client && node -e \"fs.cpSync('client/dist', 'dist', {recursive: true})\"",
     "postinstall": "npm install --prefix client && npm install --prefix server",
     "install:all": "npm install && npm install --prefix server && npm install --prefix client"
   },
