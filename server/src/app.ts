@@ -22,6 +22,7 @@ const limiter = rateLimit({
 });
 
 app.use('/api', limiter, router);
+app.use('/', limiter, router);
 
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', app: 'Nexus AI - Multimodal Intelligence Workspace', timestamp: new Date().toISOString() });
